@@ -135,16 +135,6 @@ export default function Events() {
     }
   });
 
-     // Add this temporarily to get your user ID
-     useEffect(() => {
-      const checkUser = async () => {
-        const { data } = await supabase.auth.getUser();
-        console.log("USER ID:", data?.user?.id);
-      };
-      checkUser();
-    }, []);
-    // USER ID: 335499ea-fe9f-4899-9dc1-af659770f048
-
   useEffect(() => {
     fetchEvents();
     fetchUserFavorites();
@@ -160,9 +150,10 @@ export default function Events() {
           schema: 'public',
           table: 'events'
         },
-        (payload) => {
-          // Refresh events when changes occur
-          fetchEvents();
+        () => {
+          if (!showCreateModal) {
+            fetchEvents();
+          }
         }
       )
       .subscribe();
@@ -170,7 +161,7 @@ export default function Events() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [showCreateModal]);
 
   const fetchEvents = async () => {
     try {
@@ -291,6 +282,8 @@ export default function Events() {
   };
 
   const onSubmit = async (values: FormValues) => {
+    if (isSubmitting) return;
+    
     try {
       setIsSubmitting(true);
       const { data: { user }, error: userError } = await supabase.auth.getUser();
@@ -325,11 +318,12 @@ export default function Events() {
           });
           
         if (upsertError) {
-          console.error('Error ensuring organizer status:', upsertError);
+          toast.error("Failed to update profile status");
+          return;
         }
       }
 
-      // Start a Supabase transaction
+      // Create the event
       const { data: event, error: eventError } = await supabase
         .from('events')
         .insert({
@@ -346,11 +340,12 @@ export default function Events() {
         .single();
 
       if (eventError) {
-        throw eventError;
+        toast.error("Failed to create event: " + eventError.message);
+        return;
       }
 
       // If there's a custom question, save it
-      if (values.customQuestion?.trim()) {
+      if (values.customQuestion?.trim() && event?.id) {
         const { error: questionError } = await supabase
           .from('event_questions')
           .insert({
@@ -359,7 +354,7 @@ export default function Events() {
           });
 
         if (questionError) {
-          throw questionError;
+          toast.error("Event created but custom question could not be added");
         }
       }
 
@@ -368,8 +363,8 @@ export default function Events() {
       form.reset();
       fetchEvents(); // Refresh the events list
     } catch (error) {
-      console.error('Error creating event:', error);
-      toast.error("Failed to create event. Please try again.");
+      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+      toast.error("Failed to create event. Please try again. " + errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -721,14 +716,19 @@ export default function Events() {
                   <Button 
                     type="button" 
                     onClick={async () => {
-                      const isNameValid = await form.trigger('name');
-                      const isDateValid = await form.trigger('date');
-                      const isCategoryValid = await form.trigger('category');
-                      const isDescriptionValid = await form.trigger('description');
-                      
-                      if (isNameValid && isDateValid && isCategoryValid && isDescriptionValid) {
-                        setCurrentStep(2);
-                        setProgress(66);
+                      try {
+                        const isNameValid = await form.trigger('name');
+                        const isDateValid = await form.trigger('date');
+                        const isCategoryValid = await form.trigger('category');
+                        const isDescriptionValid = await form.trigger('description');
+                        
+                        if (isNameValid && isDateValid && isCategoryValid && isDescriptionValid) {
+                          setCurrentStep(2);
+                          setProgress(66);
+                        }
+                      } catch (error) {
+                        // Silent fail, validation errors will be displayed in the form
+                        // The form.trigger() functions will update error states automatically
                       }
                     }}
                     className="ml-auto bg-white text-zinc-900 hover:bg-zinc-200"

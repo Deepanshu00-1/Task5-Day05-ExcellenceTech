@@ -65,7 +65,7 @@ export default function EventDetails() {
     fetchComments();
     checkFavoriteStatus();
     loadMapsApiKey();
-    setIsOrganizer(isUserOrganizer());
+    checkOrganizerStatus();
   }, [id]);
 
   const loadMapsApiKey = async () => {
@@ -243,8 +243,14 @@ export default function EventDetails() {
         return;
       }
 
+      // Check if event exists and is not at capacity
+      if (!event) {
+        alert('Event details not found');
+        return;
+      }
+      
       // Check if event is already full
-      if (event && event.registered >= event.capacity) {
+      if (event.registered >= event.capacity) {
         alert('This event is full and cannot accept more registrations');
         return;
       }
@@ -259,8 +265,7 @@ export default function EventDetails() {
         });
 
       if (error) {
-        console.error('Error registering for event:', error);
-        alert('Failed to register for event');
+        alert('Failed to register for event: ' + error.message);
         return;
       }
 
@@ -275,7 +280,8 @@ export default function EventDetails() {
       
       alert('Successfully registered for the event!');
     } catch (error) {
-      console.error('Error registering for event:', error);
+      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+      alert('Error registering for event: ' + errorMessage);
     }
   };
 
@@ -339,6 +345,31 @@ export default function EventDetails() {
         </DialogContent>
       </Dialog>
     );
+  };
+
+  const checkOrganizerStatus = async () => {
+    // First check using the synchronous localStorage-based function
+    const isOrgFromLocal = isUserOrganizer();
+    
+    // Also check the database
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data } = await supabase
+          .from('profiles')
+          .select('is_organizer')
+          .eq('user_id', user.id)
+          .single();
+          
+        // Set as organizer if either check passes
+        setIsOrganizer(isOrgFromLocal || !!data?.is_organizer);
+      } else {
+        setIsOrganizer(isOrgFromLocal);
+      }
+    } catch (error) {
+      // If database check fails, use localStorage result
+      setIsOrganizer(isOrgFromLocal);
+    }
   };
 
   if (loading) {

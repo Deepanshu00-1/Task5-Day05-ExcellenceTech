@@ -34,11 +34,40 @@ export default function Home() {
   const [filteredFeaturedEvents, setFilteredFeaturedEvents] = useState<Event[]>([]);
   const [isOrganizer, setIsOrganizer] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [allEvents, setAllEvents] = useState<Event[]>([]);
+  const [filteredEvents, setFilteredEvents] = useState<Event[]>([]);
 
   useEffect(() => {
-    fetchEvents();
-    setIsOrganizer(isUserOrganizer());
-  }, []);
+    const checkUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        // Check if user is organizer in the database
+        try {
+          const { data } = await supabase
+            .from('profiles')
+            .select('is_organizer')
+            .eq('user_id', user.id)
+            .single();
+          
+          // Check if data exists and user is an organizer in the database
+          const isOrganizerInDB = data?.is_organizer || false;
+          
+          // Also check our utility function that uses localStorage
+          const isOrgFromLocal = isUserOrganizer();
+          
+          // User is an organizer if either check passes
+          setIsOrganizer(isOrganizerInDB || isOrgFromLocal);
+        } catch (error) {
+          // If there's an error, fall back to localStorage check
+          setIsOrganizer(isUserOrganizer());
+        }
+      }
+      setLoading(false);
+    };
+    
+    checkUser();
+  }, [supabase]);
 
   useEffect(() => {
     // Filter featured events when search query changes
@@ -51,25 +80,73 @@ export default function Home() {
     );
   }, [searchQuery, featuredEvents]);
 
-  const fetchEvents = async () => {
-    try {
+  // Fetch featured events
+  useEffect(() => {
+    const fetchFeaturedEvents = async () => {
       setLoading(true);
-      
-      // Fetch featured events
-      const { data: featuredData, error: featuredError } = await supabase
-        .from('events')
-        .select('*')
-        .eq('is_featured', true)
-        .limit(2);
+      try {
+        const { data, error } = await supabase
+          .from('events')
+          .select('*')
+          .eq('is_featured', true)
+          .order('date', { ascending: true });
 
-      if (featuredError) throw featuredError;
-      setFeaturedEvents(featuredData || []);
-      setFilteredFeaturedEvents(featuredData || []);
-    } catch (error) {
-      console.error('Error fetching events:', error);
-    } finally {
-      setLoading(false);
+        if (error) {
+          setError('Failed to fetch featured events');
+        } else {
+          setFeaturedEvents(data || []);
+          setFilteredFeaturedEvents(data || []);
+        }
+      } catch (err) {
+        setError('An unexpected error occurred');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFeaturedEvents();
+  }, [supabase]);
+
+  // Fetch all events for search
+  useEffect(() => {
+    const fetchAllEvents = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('events')
+          .select('*')
+          .order('date', { ascending: true });
+
+        if (error) {
+          setError('Failed to fetch events');
+        } else {
+          setAllEvents(data || []);
+          setFilteredEvents(data || []);
+        }
+      } catch (err) {
+        setError('An unexpected error occurred');
+      }
+    };
+
+    fetchAllEvents();
+  }, [supabase]);
+
+  // Handle search
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const searchTerm = e.target.value.toLowerCase();
+    setSearchQuery(searchTerm);
+
+    if (searchTerm.trim() === '') {
+      setFilteredEvents(allEvents);
+      return;
     }
+
+    const filtered = allEvents.filter(
+      (event) =>
+        event.name.toLowerCase().includes(searchTerm) ||
+        event.description.toLowerCase().includes(searchTerm) ||
+        event.category.toLowerCase().includes(searchTerm)
+    );
+    setFilteredEvents(filtered);
   };
 
   // Clean, simple event card with gray/white color scheme
@@ -178,7 +255,7 @@ export default function Home() {
                   type="text"
                   placeholder="Search events by name or category..."
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={handleSearch}
                   className="pl-10 pr-4 py-6 bg-zinc-800 border-zinc-700 placeholder-gray-500 text-white rounded-lg w-full text-lg focus:ring-2 focus:ring-white/20 transition-all"
                 />
               </div>

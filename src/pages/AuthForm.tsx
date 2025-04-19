@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { Github, Loader2 } from "lucide-react"
-import { supabase, testSupabaseConnection } from "@/lib/supabaseClient"
+import { supabase, testConnection } from "@/lib/supabaseClient"
 import { useNavigate } from "react-router-dom"
 
 export default function AuthForm() {
@@ -26,7 +26,7 @@ export default function AuthForm() {
   }, [])
 
   const checkConnection = async () => {
-    const status = await testSupabaseConnection();
+    const status = await testConnection();
     setConnectionStatus(status);
     console.log('Connection status:', status);
   }

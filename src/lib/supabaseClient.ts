@@ -7,44 +7,27 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase environment variables')
 }
 
-console.log('Initializing Supabase with URL:', supabaseUrl);
+// Create and export the Supabase client
+export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true
-  }
-});
-
-// Test function to verify Supabase connection and auth
-export const testSupabaseConnection = async () => {
+// Test connection function that can be called when needed
+// but doesn't run automatically
+export const testConnection = async (): Promise<{ success: boolean; message: string }> => {
   try {
-    console.log('Testing Supabase connection...');
+    // Test auth configuration
+    await supabase.auth.getSession()
     
-    // Test 1: Auth Configuration
-    const { data: authTest, error: authError } = await supabase.auth.getSession();
-    if (authError) {
-      console.error('Auth test failed:', authError.message);
-      throw new Error(`Auth Error: ${authError.message}`);
-    }
-    console.log('✅ Auth Configuration: Success');
-
-    // Test 2: Database Connection
-    const { data: dbTest, error: dbError } = await supabase
-      .from('profiles')
-      .select('count')
-      .limit(1);
+    // Test database connection
+    await supabase.from('profiles').select('count').limit(1)
     
-    if (dbError && dbError.message !== 'relation "public.profiles" does not exist') {
-      console.error('Database test failed:', dbError.message);
-      throw new Error(`Database Error: ${dbError.message}`);
+    return { 
+      success: true,
+      message: 'Successfully connected to Supabase'
     }
-    console.log('✅ Database Connection: Success');
-
-    return { success: true, message: 'Supabase connection and auth are working correctly' };
-  } catch (error: any) {
-    console.error('❌ Supabase Test Failed:', error.message);
-    return { success: false, message: error.message };
+  } catch (error) {
+    return { 
+      success: false, 
+      message: error instanceof Error ? error.message : 'Unknown error connecting to Supabase'
+    }
   }
-};
+}

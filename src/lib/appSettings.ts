@@ -1,9 +1,9 @@
 import { supabase } from './supabaseClient';
 
 /**
- * Get a setting value from the app_settings table
- * @param key The key to look up
- * @returns The setting value or null if not found
+ * Get an application setting from the database
+ * @param key The setting key to retrieve
+ * @returns The setting value or null if not found or error
  */
 export async function getAppSetting(key: string): Promise<string | null> {
   try {
@@ -12,15 +12,13 @@ export async function getAppSetting(key: string): Promise<string | null> {
       .select('value')
       .eq('key', key)
       .single();
-      
+    
     if (error) {
-      console.error('Error fetching app setting:', error);
       return null;
     }
     
     return data?.value || null;
   } catch (error) {
-    console.error('Error in getAppSetting:', error);
     return null;
   }
 } 
