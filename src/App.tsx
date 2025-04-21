@@ -6,6 +6,7 @@ import MyRegistrations from '@/pages/MyRegistrations';
 import EventDetails from '@/pages/EventDetails';
 import Home from '@/pages/Home';
 import AuthForm from '@/pages/AuthForm';
+import AuthCallback from '@/pages/AuthCallback';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { Toaster } from 'sonner';
 
@@ -17,6 +18,7 @@ export default function App() {
         <Routes>
           {/* Public Routes */}
           <Route path="/login" element={<AuthForm />} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
 
           {/* Protected Routes - All routes that require authentication */}
           <Route

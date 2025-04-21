@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import { Github, Loader2 } from "lucide-react"
+import { Mail, Loader2 } from "lucide-react"
 import { supabase, testConnection } from "@/lib/supabaseClient"
 import { useNavigate } from "react-router-dom"
 
@@ -158,6 +158,30 @@ export default function AuthForm() {
     }
   }
 
+  const handleGoogleAuth = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          }
+        }
+      })
+      
+      if (error) throw error
+      
+    } catch (err: any) {
+      console.error('Google auth error:', err.message)
+      setError(err.message)
+      setLoading(false)
+    }
+  }
+
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       handleAuth();
@@ -304,9 +328,10 @@ export default function AuthForm() {
               variant="outline" 
               className="w-full justify-center border-gray-600 hover:bg-gray-900 hover:text-white text-white"
               disabled={loading}
+              onClick={handleGoogleAuth}
             >
-              <Github className="mr-2 h-4 w-4" />
-              GitHub
+              <Mail className="mr-2 h-4 w-4" />
+              Google
             </Button>
 
             <p className="text-xs text-muted-foreground text-center">
