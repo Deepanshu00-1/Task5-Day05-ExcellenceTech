@@ -36,3 +36,16 @@ const Login = () => {
 }
 
 export default Login
+
+
+// # Run unit tests in watch mode
+// npm test
+
+// # Run unit tests with UI
+// npm run test:ui
+
+// # Run tests with coverage report
+// npm run test:coverage
+
+// # Run end-to-end tests (if you implemented them)
+// npm run test:e2e

@@ -1,0 +1,7 @@
+The test follows a logical progression:
+Navigate to home page and login if needed
+Go to the events page
+Find or create an event
+View event details
+Attempt to register for the event
+Complete the registration process
