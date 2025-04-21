@@ -8,8 +8,6 @@ import Home from '@/pages/Home';
 import AuthForm from '@/pages/AuthForm';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { Toaster } from 'sonner';
-import { handleRegistrationErrors, isEventFull } from '@/lib/errorHandling';
-import { toast } from 'sonner';
 
 export default function App() {
   return (

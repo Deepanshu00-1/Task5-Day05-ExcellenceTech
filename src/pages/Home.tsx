@@ -8,13 +8,14 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { supabase } from '@/lib/supabaseClient';
+// import { supabase } from '@/lib/supabaseClient';
 import { Button } from '@/components/ui/button';
 import { Calendar, MapPin, Search, ArrowRight, Users } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Progress } from '@/components/ui/progress';
 import { isUserOrganizer } from '@/lib/utils';
+import { createClient } from '@supabase/supabase-js';
 
 interface Event {
   id: string;
@@ -29,14 +30,18 @@ interface Event {
 }
 
 export default function Home() {
+  const [supabase] = useState(() => createClient(
+    import.meta.env.VITE_SUPABASE_URL,
+    import.meta.env.VITE_SUPABASE_ANON_KEY
+  ));
   const [featuredEvents, setFeaturedEvents] = useState<Event[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filteredFeaturedEvents, setFilteredFeaturedEvents] = useState<Event[]>([]);
-  const [isOrganizer, setIsOrganizer] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [allEvents, setAllEvents] = useState<Event[]>([]);
-  const [filteredEvents, setFilteredEvents] = useState<Event[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [_filteredEvents, setFilteredEvents] = useState<Event[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [_error, setError] = useState<string | null>(null);
+  const [isOrganizer, setIsOrganizer] = useState(false);
+  const [filteredFeaturedEvents, setFilteredFeaturedEvents] = useState<Event[]>([]);
 
   useEffect(() => {
     const checkUser = async () => {

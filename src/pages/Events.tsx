@@ -45,42 +45,42 @@ interface Event {
   };
 }
 
-interface EventFormData {
-  name: string;
-  description: string;
-  category: string;
-  date: string;
-  location: string;
-  capacity: number;
-  coordinates: {
-    lat: number;
-    lng: number;
-  };
-}
+// interface EventFormData {
+//   name: string;
+//   description: string;
+//   category: string;
+//   date: string;
+//   location: string;
+//   capacity: number;
+//   coordinates: {
+//     lat: number;
+//     lng: number;
+//   };
+// }
 
-interface FormErrors {
-  name?: string;
-  description?: string;
-  category?: string;
-  date?: string;
-  location?: string;
-  capacity?: string;
-}
+// interface FormErrors {
+//   name?: string;
+//   description?: string;
+//   category?: string;
+//   date?: string;
+//   location?: string;
+//   capacity?: string;
+// }
 
 const ITEMS_PER_PAGE = 10;
 
-const INITIAL_FORM_DATA: EventFormData = {
-  name: '',
-  description: '',
-  category: 'workshop',
-  date: '',
-  location: '',
-  capacity: 10,
-  coordinates: {
-    lat: 0,
-    lng: 0,
-  },
-};
+// const INITIAL_FORM_DATA: EventFormData = {
+//   name: '',
+//   description: '',
+//   category: 'workshop',
+//   date: '',
+//   location: '',
+//   capacity: 10,
+//   coordinates: {
+//     lat: 0,
+//     lng: 0,
+//   },
+// };
 
 const formSchema = z.object({
   name: z.string()
@@ -118,8 +118,8 @@ export default function Events() {
   const [favorites, setFavorites] = useState<string[]>([]);
   const [currentStep, setCurrentStep] = useState(1);
   const [progress, setProgress] = useState(33);
-  const [formData, setFormData] = useState<EventFormData>(INITIAL_FORM_DATA);
-  const [formErrors, setFormErrors] = useState<FormErrors>({});
+  // const [formData, setFormData] = useState<EventFormData>(INITIAL_FORM_DATA);
+  // const [_formErrors, setFormErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<FormValues>({
@@ -230,56 +230,56 @@ export default function Events() {
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
+  // const _handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  //   const { name, value } = e.target;
     
-    if (name === 'capacity') {
-      const numValue = Number(value);
-      if (!isNaN(numValue)) {
-        setFormData(prev => ({
-          ...prev,
-          capacity: numValue
-        }));
-      }
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        [name]: value
-      }));
-    }
+  //   if (name === 'capacity') {
+  //     const numValue = Number(value);
+  //     if (!isNaN(numValue)) {
+  //       setFormData(prev => ({
+  //         ...prev,
+  //         capacity: numValue
+  //       }));
+  //     }
+  //   } else {
+  //     setFormData(prev => ({
+  //       ...prev,
+  //       [name]: value
+  //     }));
+  //   }
     
-    // Clear error when user types
-    setFormErrors(prev => ({ ...prev, [name]: undefined }));
-  };
+  //   // Clear error when user types
+  //   setFormErrors(prev => ({ ...prev, [name]: undefined }));
+  // };
 
-  const validateStep = (step: number) => {
-    const errors: FormErrors = {};
+  // const validateStep = (step: number) => {
+  //   const errors: FormErrors = {};
     
-    if (step === 1) {
-      if (!formData.name) errors.name = 'Name is required';
-      if (!formData.category) errors.category = 'Category is required';
-      if (!formData.description) errors.description = 'Description is required';
-    } else if (step === 2) {
-      if (!formData.date) errors.date = 'Date is required';
-      if (!formData.location) errors.location = 'Location is required';
-      if (!formData.capacity || formData.capacity < 10) errors.capacity = 'Minimum capacity is 10';
-    }
+  //   if (step === 1) {
+  //     if (!formData.name) errors.name = 'Name is required';
+  //     if (!formData.category) errors.category = 'Category is required';
+  //     if (!formData.description) errors.description = 'Description is required';
+  //   } else if (step === 2) {
+  //     if (!formData.date) errors.date = 'Date is required';
+  //     if (!formData.location) errors.location = 'Location is required';
+  //     if (!formData.capacity || formData.capacity < 10) errors.capacity = 'Minimum capacity is 10';
+  //   }
 
-    setFormErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
+  //   setFormErrors(errors);
+  //   return Object.keys(errors).length === 0;
+  // };
 
-  const handleNext = () => {
-    if (validateStep(currentStep)) {
-      setCurrentStep(prev => prev + 1);
-      setProgress(prev => Math.min(100, prev + 33));
-    }
-  };
+  // const _handleNext = () => {
+  //   if (validateStep(currentStep)) {
+  //     setCurrentStep(prev => prev + 1);
+  //     setProgress(currentStep === 1 ? 66 : 100);
+  //   }
+  // };
 
-  const handlePrevious = () => {
-    setCurrentStep(prev => prev - 1);
-    setProgress(prev => Math.max(33, prev - 33));
-  };
+  // const _handlePrevious = () => {
+  //   setCurrentStep(prev => prev - 1);
+  //   setProgress(currentStep === 3 ? 66 : 33);
+  // };
 
   const onSubmit = async (values: FormValues) => {
     if (isSubmitting) return;

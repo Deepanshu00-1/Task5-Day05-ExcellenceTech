@@ -93,9 +93,9 @@ export default function MyRegistrations() {
       const { data, error } = await query;
       if (error) throw error;
 
-      setRegistrations(data as Registration[]);
+      setRegistrations(data as unknown as Registration[]);
       if (data && data.length > 0) {
-        fetchRecommendedEvents(data);
+        fetchRecommendedEvents(data as unknown as Registration[]);
       }
     } catch (error) {
       console.error('Error fetching registrations:', error);
