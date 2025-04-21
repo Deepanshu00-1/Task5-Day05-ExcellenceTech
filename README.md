@@ -150,7 +150,7 @@ npm run dev
 yarn dev
 ```
 
-The application will be available at `http://localhost:5173`
+The application will be available at `http://116.202.210.102:5181/`
 
 ### Building for Production
 
