@@ -1,19 +1,42 @@
-import { describe, it, expect, vi } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import React from 'react'
+
+// Define interfaces for form data and props
+interface EventFormData {
+  name: string;
+  description: string;
+  capacity: number;
+  category: string;
+  isFeatured: boolean;
+}
+
+interface EventCreationFormProps {
+  onSubmit: (data: EventFormData) => void;
+  onCancel: () => void;
+}
 
 // Simplified test component
-function EventCreationForm({ onSubmit, onCancel }) {
-  const handleSubmit = (e) => {
+function EventCreationForm({ onSubmit, onCancel }: EventCreationFormProps) {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    const formData = new FormData(e.target)
-    const data = {
-      name: formData.get('name'),
-      description: formData.get('description'),
-      capacity: parseInt(formData.get('capacity')),
-      category: formData.get('category'),
+    const formData = new FormData(e.target as HTMLFormElement)
+    
+    // Get values with default fallbacks for null values
+    const nameValue = formData.get('name')
+    const descriptionValue = formData.get('description')
+    const capacityValue = formData.get('capacity')
+    const categoryValue = formData.get('category')
+    
+    const data: EventFormData = {
+      name: nameValue ? String(nameValue) : '',
+      description: descriptionValue ? String(descriptionValue) : '',
+      capacity: capacityValue ? parseInt(String(capacityValue), 10) : 0,
+      category: categoryValue ? String(categoryValue) : 'workshop',
       isFeatured: formData.get('isFeatured') === 'on'
     }
+    
     onSubmit(data)
   }
   

@@ -3,8 +3,26 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { BrowserRouter } from 'react-router-dom'
 
+// Define types for the event and component props
+interface Event {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  date: string;
+  location: string;
+  capacity: number;
+  registered: number;
+}
+
+interface EventCardProps {
+  event: Event;
+  isFavorited: boolean;
+  onToggleFavorite: (eventId: string) => void;
+}
+
 // Create a simplified test component based on your Events.tsx rendering logic
-const EventCard = ({ event, isFavorited, onToggleFavorite }) => (
+const EventCard = ({ event, isFavorited, onToggleFavorite }: EventCardProps) => (
   <div className="event-card" data-testid="event-card">
     <h3 data-testid="event-title">{event.name}</h3>
     <p data-testid="event-description">{event.description}</p>
@@ -27,7 +45,7 @@ const EventCard = ({ event, isFavorited, onToggleFavorite }) => (
 )
 
 describe('EventCard Component', () => {
-  const mockEvent = {
+  const mockEvent: Event = {
     id: '1',
     name: 'Test Event',
     description: 'This is a test event description',

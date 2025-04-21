@@ -1,8 +1,22 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { supabase } from '@/lib/supabaseClient'
 
+// Define types
+interface Event {
+  id: string;
+  name: string;
+  description: string;
+  [key: string]: any; // For other possible properties
+}
+
+interface FetchEventsResult {
+  success: boolean;
+  data: Event[];
+  error?: Error;
+}
+
 // Service function to test
-const fetchEvents = async (page = 1, itemsPerPage = 10) => {
+const fetchEvents = async (page = 1, itemsPerPage = 10): Promise<FetchEventsResult> => {
   try {
     const { data, error } = await supabase
       .from('events')
@@ -13,12 +27,12 @@ const fetchEvents = async (page = 1, itemsPerPage = 10) => {
     return { success: true, data: data || [] }
   } catch (error) {
     console.error('Error fetching events:', error)
-    return { success: false, error, data: [] }
+    return { success: false, error: error as Error, data: [] }
   }
 }
 
 describe('fetchEvents Supabase Query', () => {
-  const mockEvents = [
+  const mockEvents: Event[] = [
     { id: '1', name: 'Event 1', description: 'Description 1' },
     { id: '2', name: 'Event 2', description: 'Description 2' }
   ]
@@ -33,7 +47,7 @@ describe('fetchEvents Supabase Query', () => {
     const selectMock = vi.fn().mockReturnValue({ range: rangeMock })
     const fromMock = vi.fn().mockReturnValue({ select: selectMock })
     
-    vi.mocked(supabase.from).mockImplementation(fromMock)
+    vi.spyOn(supabase, 'from').mockImplementation(fromMock as any)
     
     // Run test
     const result = await fetchEvents()
@@ -53,7 +67,7 @@ describe('fetchEvents Supabase Query', () => {
     const selectMock = vi.fn().mockReturnValue({ range: rangeMock })
     const fromMock = vi.fn().mockReturnValue({ select: selectMock })
     
-    vi.mocked(supabase.from).mockImplementation(fromMock)
+    vi.spyOn(supabase, 'from').mockImplementation(fromMock as any)
     
     // Spy on console.error
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
@@ -77,7 +91,7 @@ describe('fetchEvents Supabase Query', () => {
     const selectMock = vi.fn().mockReturnValue({ range: rangeMock })
     const fromMock = vi.fn().mockReturnValue({ select: selectMock })
     
-    vi.mocked(supabase.from).mockImplementation(fromMock)
+    vi.spyOn(supabase, 'from').mockImplementation(fromMock as any)
     
     // Run test with custom pagination
     await fetchEvents(2, 20)

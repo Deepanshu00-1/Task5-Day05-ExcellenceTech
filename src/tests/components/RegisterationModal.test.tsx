@@ -1,6 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
 
 interface Event {
   id: string;
@@ -60,6 +59,13 @@ const RegistrationModal = ({ event, isOpen, onClose, onRegister }: RegistrationM
         <button type="submit" data-testid="submit-registration">
           Complete Registration
         </button>
+        <button 
+          type="button" 
+          data-testid="close-button"
+          onClick={onClose}
+        >
+          Cancel
+        </button>
       </form>
     </div>
   )
@@ -76,6 +82,14 @@ describe('RegistrationModal Component', () => {
   
   const mockOnClose = vi.fn()
   const mockOnRegister = vi.fn()
+  
+  // const mockUser = {
+  //   id: 'user-123',
+  //   app_metadata: {},
+  //   user_metadata: {},
+  //   aud: 'authenticated',
+  //   created_at: '2023-01-01T00:00:00Z'
+  // }
   
   it('renders the registration form with event name', () => {
     render(
@@ -123,5 +137,21 @@ describe('RegistrationModal Component', () => {
     )
     
     expect(screen.queryByText('Register for Test Event')).not.toBeInTheDocument()
+  })
+  
+  it('calls onClose when cancel button is clicked', () => {
+    render(
+      <RegistrationModal 
+        event={mockEvent} 
+        isOpen={true} 
+        onClose={mockOnClose} 
+        onRegister={mockOnRegister} 
+      />
+    )
+    
+    const closeButton = screen.getByTestId('close-button')
+    fireEvent.click(closeButton)
+    
+    expect(mockOnClose).toHaveBeenCalled()
   })
 })

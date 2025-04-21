@@ -1,8 +1,25 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { supabase } from '@/lib/supabaseClient'
+import type { User } from '@supabase/supabase-js'
+
+// Define types
+interface EventData {
+  name: string;
+  description: string;
+  category: string;
+  date: string;
+  capacity: number;
+  is_featured: boolean;
+}
+
+interface CreateEventResult {
+  success: boolean;
+  data?: any;
+  error?: Error;
+}
 
 // Service function to test
-const createEvent = async (eventData) => {
+const createEvent = async (eventData: EventData): Promise<CreateEventResult> => {
   try {
     const { data: { user } } = await supabase.auth.getUser()
     
@@ -24,13 +41,28 @@ const createEvent = async (eventData) => {
     return { success: true, data }
   } catch (error) {
     console.error('Error creating event:', error)
-    return { success: false, error }
+    return { success: false, error: error as Error }
   }
 }
 
 describe('createEvent Supabase Query', () => {
-  const mockUser = { id: 'user-123' }
-  const mockEventData = {
+  // Define mock user with proper structure to match the Supabase User type
+  const mockUser: Partial<User> = {
+    id: 'user-123',
+    app_metadata: {},
+    user_metadata: {},
+    aud: 'authenticated',
+    created_at: '2023-01-01T00:00:00Z',
+    confirmed_at: '2023-01-01T00:00:00Z',
+    email: 'test@example.com',
+    phone: '',
+    role: '',
+    updated_at: '2023-01-01T00:00:00Z',
+    identities: [],
+    factors: []
+  }
+  
+  const mockEventData: EventData = {
     name: 'New Event',
     description: 'Event description',
     category: 'workshop',
@@ -52,8 +84,8 @@ describe('createEvent Supabase Query', () => {
   
   it('creates an event successfully when user is authenticated', async () => {
     // Mock auth.getUser
-    vi.mocked(supabase.auth.getUser).mockResolvedValue({
-      data: { user: mockUser },
+    vi.spyOn(supabase.auth, 'getUser').mockResolvedValue({
+      data: { user: mockUser as User },
       error: null
     })
     
@@ -66,7 +98,7 @@ describe('createEvent Supabase Query', () => {
     const insertMock = vi.fn().mockReturnValue({ select: selectMock })
     const fromMock = vi.fn().mockReturnValue({ insert: insertMock })
     
-    vi.mocked(supabase.from).mockImplementation(fromMock)
+    vi.spyOn(supabase, 'from').mockImplementation(fromMock as any)
     
     // Run test
     const result = await createEvent(mockEventData)
@@ -85,10 +117,10 @@ describe('createEvent Supabase Query', () => {
   
   it('returns error when user is not authenticated', async () => {
     // Mock auth.getUser to return no user
-    vi.mocked(supabase.auth.getUser).mockResolvedValue({
+    vi.spyOn(supabase.auth, 'getUser').mockResolvedValue({
       data: { user: null },
       error: null
-    })
+    } as any)
     
     // Spy on console.error
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
@@ -98,8 +130,12 @@ describe('createEvent Supabase Query', () => {
     
     // Assertions
     expect(result.success).toBe(false)
-    expect(result.error).toBeInstanceOf(Error)
-    expect(result.error.message).toBe('User not authenticated')
+    if (result.error) {
+      expect(result.error).toBeInstanceOf(Error)
+      expect(result.error.message).toBe('User not authenticated')
+    } else {
+      expect.fail('Expected result.error to be defined')
+    }
     
     // Cleanup
     consoleErrorSpy.mockRestore()
@@ -107,8 +143,8 @@ describe('createEvent Supabase Query', () => {
   
   it('handles database errors', async () => {
     // Mock auth.getUser
-    vi.mocked(supabase.auth.getUser).mockResolvedValue({
-      data: { user: mockUser },
+    vi.spyOn(supabase.auth, 'getUser').mockResolvedValue({
+      data: { user: mockUser as User },
       error: null
     })
     
@@ -122,7 +158,7 @@ describe('createEvent Supabase Query', () => {
     const insertMock = vi.fn().mockReturnValue({ select: selectMock })
     const fromMock = vi.fn().mockReturnValue({ insert: insertMock })
     
-    vi.mocked(supabase.from).mockImplementation(fromMock)
+    vi.spyOn(supabase, 'from').mockImplementation(fromMock as any)
     
     // Spy on console.error
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
